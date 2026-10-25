@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TIME CAPSULE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <!-- 홀로그램 구체 캔버스 (p5 WEBGL) -->
+    <div id="orb-layer" aria-hidden="true"></div>
+
+    <!-- 얇은 그리드 라인 -->
+    <div class="grid-layer" aria-hidden="true">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+        <line x1="18" y1="100" x2="64" y2="0" />
+        <line x1="64" y1="0" x2="100" y2="78" />
+        <line x1="40" y1="100" x2="100" y2="34" />
+      </svg>
+    </div>
+
+    <!-- 구체를 따라다니는 라벨 · 클릭 영역 -->
+    <div id="orb-ui"></div>
+
+    <aside class="sidebar">
+      <a class="logo" href="#home" aria-label="TIME CAPSULE 홈">
+        <span>TIME CAPSULE</span>
+      </a>
+
+      <nav class="nav" aria-label="메인 메뉴">
+        <a href="#home" data-nav="home">HOME</a>
+        <a href="#write" data-nav="write">WRITE</a>
+        <a href="#capsules" data-nav="capsules"
+          >MY CAPSULES <sup id="nav-count-caps"></sup
+        ></a>
+        <a href="#archive" data-nav="archive"
+          >ARCHIVE <sup id="nav-count-arch"></sup
+        ></a>
+      </nav>
+
+      <div class="side-meta">
+        <span class="micro" id="clock-date">0000—00—00</span>
+        <span class="clock" id="clock-time">00:00:00</span>
+        <button
+          type="button"
+          class="text-btn settings-btn"
+          id="settings-btn"
+          aria-haspopup="dialog"
+        >
+          <span class="sb-long">LOCAL DATA · </span>SETTINGS
+        </button>
+      </div>
+    </aside>
+
+    <main id="main">
+      <!-- 01 HOME -->
+      <section class="view view-home" data-view="home">
+        <div class="home-hero">
+          <div class="hero-top">
+            <span class="micro">DIGITAL TIME CAPSULE — MEMO</span>
+            <span class="micro" id="home-edition">EDITION 0000</span>
+          </div>
+
+          <div class="hero-copy">
+            <h1 class="hero-title">Write now,<br /><em>open later.</em></h1>
+            <p class="hero-lead">
+              지금의 생각과 감정을 한 장의 메모로 남겨 캡슐 안에 봉인하세요.
+              정해 둔 날이 오기 전까지 캡슐은 열리지 않습니다.
+            </p>
+            <a class="cta" href="#write"
+              ><span>WRITE A CAPSULE</span><i class="arrow"></i
+            ></a>
+
+            <dl class="stats">
+              <div>
+                <dt class="micro">IN STORAGE</dt>
+                <dd id="stat-stored">00</dd>
+              </div>
+              <div>
+                <dt class="micro">READY TO OPEN</dt>
+                <dd id="stat-ready">00</dd>
+              </div>
+              <div>
+                <dt class="micro">ARCHIVED</dt>
+                <dd id="stat-archived">00</dd>
+              </div>
+            </dl>
+            <p class="micro next-open" id="next-open">NEXT OPENING — NONE</p>
+          </div>
+
+          <span class="micro scroll-cue">SCROLL</span>
+        </div>
+
+        <div class="home-process">
+          <div class="process-panel">
+            <span class="micro">HOW IT WORKS</span>
+            <ol class="process">
+              <li>
+                <span class="micro">01</span>
+                <h3>WRITE</h3>
+                <p>
+                  제목과 본문을 씁니다. 봉인하기 전까지는 언제든 고칠 수 있고,
+                  초안은 자동으로 저장됩니다.
+                </p>
+              </li>
+              <li>
+                <span class="micro">02</span>
+                <h3>SEAL</h3>
+                <p>
+                  개봉 날짜를 정하면 메모가 구체 안으로 들어가 봉인됩니다.
+                  봉인된 메모는 수정할 수 없습니다.
+                </p>
+              </li>
+              <li>
+                <span class="micro">03</span>
+                <h3>WAIT</h3>
+                <p>
+                  개봉일까지 캡슐은 제목, 날짜, 남은 시간만 보여줍니다. 본문은
+                  열리지 않습니다.
+                </p>
+              </li>
+              <li>
+                <span class="micro">04</span>
+                <h3>OPEN</h3>
+                <p>
+                  날짜가 지나면 캡슐을 직접 엽니다. 열린 기록은 아카이브에서
+                  언제든 다시 읽을 수 있습니다.
+                </p>
+              </li>
+            </ol>
+            <p class="disclaimer">
+              <span class="micro">NOTE</span>
+              모든 기록은 현재 브라우저에만 저장됩니다. 브라우저 데이터를
+              삭제하거나 다른 기기에서 접속하면 기록을 확인할 수 없습니다. 글 ·
+              사진 · 음성 · 영상은 이 브라우저의 IndexedDB에만 보관되며 외부
+              서버로 전송되지 않습니다. 봉인은 화면 위의 잠금일 뿐 서버에서
+              검증하는 보안 잠금이 아니므로, 개발자 도구나 기기 시계를 바꾸면
+              내용을 볼 수 있습니다.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 02 WRITE -->
+      <section class="view view-write" data-view="write">
+        <header class="view-head">
+          <span class="micro"><i class="head-line"></i>02 / WRITE</span>
+          <span class="micro" id="write-serial">TC—000 · DRAFT</span>
+        </header>
+
+        <div class="write-wrap">
+          <dl class="write-meta">
+            <div>
+              <dt class="micro">WRITTEN</dt>
+              <dd id="write-date">—</dd>
+            </div>
+            <div>
+              <dt class="micro">TIME</dt>
+              <dd id="write-time">—</dd>
+            </div>
+            <div>
+              <dt class="micro">LENGTH</dt>
+              <dd id="write-count">0</dd>
+            </div>
+            <div>
+              <dt class="micro">STATUS</dt>
+              <dd id="write-status">EMPTY</dd>
+            </div>
+            <div>
+              <dt class="micro">ATTACHED</dt>
+              <dd id="write-media">—</dd>
+            </div>
+          </dl>
+
+          <div class="write-sheet">
+            <label class="sr-only" for="memo-title">메모 제목</label>
+            <input
+              id="memo-title"
+              class="memo-title"
+              type="text"
+              maxlength="80"
+              placeholder="제목 — 미래의 나에게"
+              autocomplete="off"
+            />
+            <div class="sheet-rule"><i id="sheet-progress"></i></div>
+            <label class="sr-only" for="memo-body">메모 본문</label>
+            <textarea
+              id="memo-body"
+              class="memo-body"
+              placeholder="지금 이 순간의 생각과 감정, 미래의 나에게 묻고 싶은 것을 적어 보세요."
+            ></textarea>
+
+            <!-- 사진 · 음성 · 영상 첨부 -->
+            <div class="attach">
+              <div class="attach-bar">
+                <button type="button" class="attach-btn" data-attach="photo">
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <rect x="1.5" y="3" width="13" height="10" />
+                    <circle cx="8" cy="8" r="2.6" /></svg
+                  ><span>PHOTO</span>
+                </button>
+                <button type="button" class="attach-btn" data-attach="voice">
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <rect x="5.5" y="1.5" width="5" height="8.5" rx="2.5" />
+                    <path d="M3 7.5a5 5 0 0 0 10 0M8 12.5v2" /></svg
+                  ><span>VOICE</span>
+                </button>
+                <button
+                  type="button"
+                  class="attach-btn is-sub"
+                  data-attach="audio"
+                >
+                  <span>AUDIO FILE</span>
+                </button>
+                <button type="button" class="attach-btn" data-attach="video">
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <rect x="1.5" y="3.5" width="9.5" height="9" />
+                    <path d="M11 7l3.5-2v6L11 9" /></svg
+                  ><span>VIDEO</span>
+                </button>
+                <span class="micro dim attach-limit"
+                  >PHOTO ≤ 15MB · VIDEO ≤ 30MB</span
+                >
+              </div>
+
+              <div class="rec" id="rec" hidden>
+                <i class="rec-dot"></i>
+                <span class="micro">REC</span>
+                <span class="rec-time" id="rec-time">00:00</span>
+                <span class="micro dim">/ 05:00</span>
+                <button type="button" class="text-btn" id="rec-cancel">
+                  CANCEL
+                </button>
+                <button type="button" class="cta" id="rec-stop">
+                  <span>STOP &amp; ATTACH</span><i class="arrow"></i>
+                </button>
+              </div>
+
+              <p
+                class="attach-status micro dim"
+                id="attach-status"
+                aria-live="polite"
+                hidden
+              ></p>
+              <div class="media-list" id="draft-media" hidden></div>
+
+              <input
+                type="file"
+                id="file-photo"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                hidden
+              />
+              <input type="file" id="file-audio" accept="audio/*" hidden />
+              <input
+                type="file"
+                id="file-video"
+                accept="video/mp4,video/webm,video/quicktime"
+                hidden
+              />
+            </div>
+          </div>
+
+          <footer class="write-foot">
+            <button class="text-btn" id="draft-clear" type="button">
+              CLEAR DRAFT
+            </button>
+            <span class="micro dim" id="autosave"
+              >AUTOSAVE ON · THIS BROWSER ONLY</span
+            >
+            <button class="cta" id="to-seal" type="button" disabled>
+              <span>NEXT — SET OPENING DATE</span><i class="arrow"></i>
+            </button>
+          </footer>
+        </div>
+      </section>
+
+      <!-- 03 SEAL -->
+      <section class="view view-seal" data-view="seal">
+        <header class="view-head">
+          <span class="micro"><i class="head-line"></i>03 / SEAL</span>
+          <a class="text-btn" href="#write" id="seal-back">← EDIT MEMO</a>
+        </header>
+
+        <div class="seal-grid">
+          <div class="seal-panel">
+            <!-- 봉인 전 -->
+            <div class="seal-form" id="seal-form">
+              <div class="seal-summary">
+                <span class="micro" id="seal-serial">TC—000</span>
+                <h2 class="seal-title" id="seal-title">—</h2>
+                <dl class="kv-list">
+                  <div>
+                    <dt class="micro">WRITTEN</dt>
+                    <dd id="seal-written">—</dd>
+                  </div>
+                  <div>
+                    <dt class="micro">OPENS</dt>
+                    <dd id="seal-opens">SELECT A DATE</dd>
+                  </div>
+                  <div>
+                    <dt class="micro">DURATION</dt>
+                    <dd id="seal-duration">—</dd>
+                  </div>
+                </dl>
+              </div>
+
+              <div class="quick">
+                <span class="micro">QUICK SELECT</span>
+                <div class="quick-row">
+                  <button type="button" data-quick="1">+1 MONTH</button>
+                  <button type="button" data-quick="6">+6 MONTHS</button>
+                  <button type="button" data-quick="12">+1 YEAR</button>
+                  <button type="button" data-quick="demo" class="is-demo">
+                    +1 MIN · DEMO
+                  </button>
+                </div>
+              </div>
+
+              <div class="calendar">
+                <div class="cal-head">
+                  <button
+                    type="button"
+                    class="cal-nav"
+                    data-cal="-1"
+                    aria-label="이전 달"
+                  >
+                    ←
+                  </button>
+                  <span id="cal-label">—</span>
+                  <button
+                    type="button"
+                    class="cal-nav"
+                    data-cal="1"
+                    aria-label="다음 달"
+                  >
+                    →
+                  </button>
+                </div>
+                <div class="cal-week micro">
+                  <span>S</span><span>M</span><span>T</span><span>W</span
+                  ><span>T</span><span>F</span><span>S</span>
+                </div>
+                <div class="cal-grid" id="cal-grid"></div>
+              </div>
+
+              <button class="seal-btn" id="seal-btn" type="button" disabled>
+                <span class="seal-dot"></span><span>SEAL THE CAPSULE</span
+                ><i class="arrow"></i>
+              </button>
+              <p class="seal-note">
+                봉인한 뒤에는 수정할 수 없고, 개봉일 전에는 본문을 볼 수
+                없습니다.
+              </p>
+            </div>
+
+            <!-- 봉인 후 -->
+            <div class="seal-done" id="seal-done" hidden>
+              <span class="micro" id="done-serial">CAPSULE SEALED</span>
+              <h2 class="done-title">Sealed.<br /><em id="done-date">—</em></h2>
+              <dl class="kv-list">
+                <div>
+                  <dt class="micro">TITLE</dt>
+                  <dd id="done-title">—</dd>
+                </div>
+                <div>
+                  <dt class="micro">OPENS</dt>
+                  <dd id="done-opens">—</dd>
+                </div>
+                <div>
+                  <dt class="micro">REMAINING</dt>
+                  <dd id="done-remaining">—</dd>
+                </div>
+              </dl>
+              <div class="done-actions">
+                <a class="cta" href="#capsules"
+                  ><span>MY CAPSULES</span><i class="arrow"></i
+                ></a>
+                <a class="text-btn" href="#write">WRITE ANOTHER</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 04 MY CAPSULES -->
+      <section class="view view-capsules" data-view="capsules">
+        <header class="view-head caps-head">
+          <div class="caps-title">
+            <span class="micro"><i class="head-line"></i>04 / MY CAPSULES</span>
+            <span class="micro dim" id="caps-hint"
+              >HOVER TO READ · CLICK TO INSPECT OR OPEN</span
+            >
+          </div>
+          <div class="filters" role="tablist" aria-label="캡슐 필터">
+            <button type="button" role="tab" data-filter="all">
+              ALL <sup id="count-all">00</sup>
+            </button>
+            <button type="button" role="tab" data-filter="sealed">
+              SEALED <sup id="count-sealed">00</sup>
+            </button>
+            <button type="button" role="tab" data-filter="ready">
+              READY <sup id="count-ready">00</sup>
+            </button>
+          </div>
+        </header>
+
+        <div class="caps-empty" id="caps-empty" hidden>
+          <p class="caps-empty-title" id="caps-empty-title">
+            아직 보관 중인 캡슐이 없습니다.
+          </p>
+          <div class="caps-empty-actions" id="caps-empty-actions">
+            <a class="cta" href="#write"
+              ><span>WRITE A CAPSULE</span><i class="arrow"></i
+            ></a>
+          </div>
+        </div>
+
+        <footer class="caps-foot">
+          <div class="pager" id="pager" hidden>
+            <button
+              type="button"
+              class="cal-nav"
+              data-page="-1"
+              aria-label="이전 페이지"
+            >
+              ←
+            </button>
+            <span class="micro" id="pager-label">01 / 01</span>
+            <button
+              type="button"
+              class="cal-nav"
+              data-page="1"
+              aria-label="다음 페이지"
+            >
+              →
+            </button>
+          </div>
+        </footer>
+      </section>
+
+      <!-- 05 ARCHIVE -->
+      <section class="view view-archive" data-view="archive">
+        <header class="view-head">
+          <span class="micro"><i class="head-line"></i>05 / ARCHIVE</span>
+          <span class="micro" id="archive-count">00 RECORDS</span>
+        </header>
+
+        <div class="archive-grid" id="archive-grid">
+          <ol class="archive-list" id="archive-list"></ol>
+          <article
+            class="archive-reader"
+            id="archive-reader"
+            aria-live="polite"
+          ></article>
+        </div>
+
+        <div class="archive-empty" id="archive-empty" hidden>
+          <p>아직 개봉한 캡슐이 없습니다.</p>
+          <span class="micro dim"
+            >개봉일이 지난 캡슐을 열면 이곳에 기록이 남습니다.</span
+          >
+          <a class="cta" href="#capsules"
+            ><span>MY CAPSULES</span><i class="arrow"></i
+          ></a>
+        </div>
+      </section>
+    </main>
+
+    <!-- 봉인된 캡슐 상세 -->
+    <aside
+      class="drawer"
+      id="drawer"
+      aria-hidden="true"
+      aria-labelledby="dr-title"
+    >
+      <button class="text-btn drawer-close" type="button" id="drawer-close">
+        CLOSE ×
+      </button>
+      <span class="micro" id="dr-serial">TC—000 — SEALED</span>
+      <h2 class="dr-title" id="dr-title">—</h2>
+      <dl class="kv-list">
+        <div>
+          <dt class="micro">WRITTEN</dt>
+          <dd id="dr-written">—</dd>
+        </div>
+        <div>
+          <dt class="micro">SEALED</dt>
+          <dd id="dr-sealed">—</dd>
+        </div>
+        <div>
+          <dt class="micro">OPENS</dt>
+          <dd id="dr-opens">—</dd>
+        </div>
+        <div>
+          <dt class="micro">CONTENTS</dt>
+          <dd id="dr-contents">—</dd>
+        </div>
+      </dl>
+      <div class="countdown" id="dr-countdown">
+        <span class="micro">REMAINING</span>
+        <div class="cd-value">
+          <b id="dr-days">0</b><span id="dr-days-unit">DAYS</span
+          ><b id="dr-clock">00:00:00</b>
+        </div>
+      </div>
+      <div class="redacted" id="dr-redacted" aria-hidden="true"></div>
+      <p class="dr-note" id="dr-note">
+        본문과 첨부한 사진 · 음성 · 영상은 개봉일까지 봉인되어 있습니다.
+      </p>
+      <button class="cta dr-open" type="button" id="dr-open" hidden>
+        <span>READY — OPEN NOW</span><i class="arrow"></i>
+      </button>
+    </aside>
+
+    <!-- 개봉한 메모 -->
+    <div
+      class="reader"
+      id="reader"
+      aria-hidden="true"
+      role="dialog"
+      aria-labelledby="rd-title"
+    >
+      <article class="letter">
+        <div class="letter-top">
+          <span class="micro" id="rd-serial">TC—000</span>
+          <span class="micro" id="rd-opened">OPENED —</span>
+        </div>
+        <h2 class="letter-title" id="rd-title">—</h2>
+        <p class="micro letter-sub" id="rd-sub">—</p>
+        <div class="letter-body" id="rd-body"></div>
+        <div class="media-list letter-media" id="rd-media" hidden></div>
+        <footer class="letter-foot">
+          <button class="text-btn" type="button" id="rd-close">
+            BACK TO CAPSULES
+          </button>
+          <button class="cta" type="button" id="rd-archive">
+            <span>KEEP IN ARCHIVE</span><i class="arrow"></i>
+          </button>
+        </footer>
+      </article>
+    </div>
+
+    <!-- 저장 정보 · 전체 초기화 -->
+    <aside
+      class="settings"
+      id="settings"
+      role="dialog"
+      aria-labelledby="settings-title"
+      aria-hidden="true"
+    >
+      <div class="settings-head">
+        <span class="micro" id="settings-title">LOCAL DATA</span>
+        <button type="button" class="text-btn" id="settings-close">
+          CLOSE ×
+        </button>
+      </div>
+      <p class="settings-note">
+        모든 기록은 현재 브라우저에만 저장됩니다. 브라우저 데이터를 삭제하거나
+        다른 기기에서 접속하면 기록을 확인할 수 없습니다.
+      </p>
+      <dl class="kv-list">
+        <div>
+          <dt class="micro">CAPSULES</dt>
+          <dd id="set-caps">00</dd>
+        </div>
+        <div>
+          <dt class="micro">ARCHIVED</dt>
+          <dd id="set-arch">00</dd>
+        </div>
+        <div>
+          <dt class="micro">MEDIA</dt>
+          <dd id="set-media">00</dd>
+        </div>
+        <div>
+          <dt class="micro">STORAGE</dt>
+          <dd id="set-usage">—</dd>
+        </div>
+      </dl>
+      <p class="micro dim settings-sample">
+        SAMPLE 기록은 개수에 포함되지 않으며, 초기화 후에도 다시 표시됩니다.
+      </p>
+      <button
+        type="button"
+        class="text-btn is-danger settings-reset"
+        id="reset-btn"
+      >
+        RESET ALL DATA
+      </button>
+    </aside>
+
+    <div
+      class="confirm"
+      id="confirm"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="confirm-title"
+      aria-describedby="confirm-desc"
+      hidden
+    >
+      <div class="confirm-card">
+        <span class="micro">RESET ALL DATA</span>
+        <h2 class="confirm-title" id="confirm-title">
+          모든 기록을 삭제하시겠습니까?
+        </h2>
+        <p class="confirm-desc" id="confirm-desc">
+          지금까지 작성한 메모, 사진, 음성, 영상과 봉인된 캡슐, 개봉한 기록이
+          모두 삭제됩니다.<br />
+          삭제된 기록은 복구할 수 없습니다.
+        </p>
+        <div class="confirm-actions">
+          <button type="button" class="text-btn" id="confirm-cancel">
+            CANCEL
+          </button>
+          <button type="button" class="cta is-danger" id="confirm-delete">
+            <span>DELETE ALL DATA</span><i class="arrow"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="p5.min.js"></script>
+    <script src="sketch.js"></script>
+    <script src="store.js"></script>
+    <script src="media.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
